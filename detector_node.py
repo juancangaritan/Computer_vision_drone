@@ -213,14 +213,8 @@ if __name__ == '__main__':
 
     pad_detect = dnn_node()
     try:
-        if pad_detect.delay:
-            time.sleep(5)
-            print ("Esperando datos...")
-            pad_detect.delay = False
-
-        else:
-            rospy.Timer(rospy.Duration(0.1), pad_detect.dnn_loop)
-            rospy.spin()
+        rospy.Timer(rospy.Duration(0.1), pad_detect.dnn_loop)
+        rospy.spin()
         
     except:
         print('error')
