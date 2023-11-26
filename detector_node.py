@@ -215,6 +215,7 @@ if __name__ == '__main__':
     try:
         if pad_detect.delay:
             time.sleep(5)
+            print ("Esperando datos...")
             pad_detect.delay = False
 
         else:
