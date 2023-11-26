@@ -34,6 +34,9 @@ class dnn_node:
         self.seconds = 0.1
         self.aterrizaje_pad = 0
         self.frame_refresh = 0
+
+        #----- initial variables ------
+        self.delay = True
     
     def init_node(self):
 
@@ -210,8 +213,13 @@ if __name__ == '__main__':
 
     pad_detect = dnn_node()
     try:
-        rospy.Timer(rospy.Duration(0.1), pad_detect.dnn_loop)
-        rospy.spin()
+        if pad_detect.delay:
+            time.sleep(5)
+            pad_detect.delay = False
+
+        else:
+            rospy.Timer(rospy.Duration(0.1), pad_detect.dnn_loop)
+            rospy.spin()
         
     except:
         print('error')
