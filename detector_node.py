@@ -201,8 +201,9 @@ class dnn_node:
             else:
                 cv2.imshow('drone view',self.img)
             msg = Float32MultiArray()
-            msg.data = self.pos
-            self.pub.publish(msg)
+            if aterrizaje:
+                msg.data = self.pos
+                self.pub.publish(msg)
             
 
         self.time_fin =time.time()
