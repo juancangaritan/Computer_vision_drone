@@ -156,6 +156,12 @@ if __name__ == '__main__':
     flag_orientation = False
 
     pilot_node.state.data = state
+
+    #------ Banderas de controlador -------
+    flag_alinea1=True
+    flag_decenso = False
+    flag_alinea2 = False
+    flag_Land = False
     
 
     while not rospy.is_shutdown():
@@ -226,7 +232,7 @@ if __name__ == '__main__':
             if not flag_acel and not flag_const and not flag_desa:
                 state = 3
 
-            pilot_node.u_action[0] = x_speed
+            pilot_node.u_action[1] = x_speed #-----> Y speed
             pilot_node.publish3()
 
 
@@ -253,13 +259,67 @@ if __name__ == '__main__':
 
         elif state3:
             new_state_alert(state)
-            if not state3_flag:
-                state3_flag = True
-                new_state_alert(3) #----> Funcion de inicio de estado
+            if flag_alinea1:
 
-            
+                #------- Ejecutando control en eje x--------
+                x_control.controller_pv = pilot_node.process_value[0]
+                x_control.process()
+                print('Alineandose con pad')
+                pilot_node.u_action[0]=x_control.output
+
+                #---- Ejecutando control en eje y ---------
+                y_control.controller_pv = pilot_node.process_value[1]
+                y_control.process()
+                pilot_node.u_action[1]= -y_control.output
 
 
+                if x_control.flag and y_control.flag and (x_control.action_flag or y_control.action_flag):
+                    rospy.sleep(5.)
+                    x_control.flag = False
+                    y_control.flag = False
+                    x_control.action_flag = False
+                    y_control.action_flag = False
+
+                if x_control.error<=20.0 and x_control.error>=-20.0 and y_control.error<=20.0 and y_control.error>=-20.0:
+                    flag_alinea1 = False
+                    flag_decenso = True
+
+            if flag_decenso:
+                if pilot_node.altitude >= 7.0:
+                    pilot_node.u_action = [0.0, 0.0, 0.0 , -1.0]
+                else:
+                    pilot_node.u_action = [0.0, 0.0, 0.0, 0.0]
+                    flag_decenso = False
+                    flag_alinea2 = True
+            if flag_alinea2:
+                #------- Ejecutando control en eje x--------
+                x_control.controller_pv = pilot_node.process_value[0]
+                x_control.process()
+                print('Alineandose con pad')
+                pilot_node.u_action[0]=x_control.output
+
+                #---- Ejecutando control en eje y ---------
+                y_control.controller_pv = pilot_node.process_value[1]
+                y_control.process()
+                pilot_node.u_action[1]= -y_control.output
+
+
+                if x_control.flag and y_control.flag and (x_control.action_flag or y_control.action_flag):
+                    rospy.sleep(5.)
+                    x_control.flag = False
+                    y_control.flag = False
+                    x_control.action_flag = False
+                    y_control.action_flag = False
+
+                if x_control.error<=10.0 and x_control.error>=-10.0 and y_control.error<=10.0 and y_control.error>=-10.0:
+                    flag_alinea2 = False
+                    flag_decenso = False
+                    pilot_node.u_action = [0.0, 0.0, 0.0, 0.0]
+                    pilot_node.pilot_mode(custom_mode='LAND')
+
+                    
+
+            pilot_node.publish3()
             
 
         pilot_node.state.data = state
